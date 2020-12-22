@@ -1,15 +1,19 @@
-# Nextcloud template for zabbix monitoring.
+# Zabbix template for Nextcloud monitoring.
+No scripts and agent settings!
 I did it using Zabbix v5.2 and this template https://github.com/y-u-r/nextcloud-zabbix/blob/master/README.md 
 
-Go to your nexcloud administrator account settings.<br>
-Create application key on Security tab.<br>
-Import this template to zabbix and assign it to your nextcloud host.<br>
-Use nextcloud admin login and application key as values for inherited macroses.<br>
+# Install
+1. Go to your Nexcloud administrator account settings.<br>
+2. Create application key on Security tab.<br>
+3. Import this template into Zabbix server and assign it to your Nextcloud host.<br>
+4. Change values of inherited macroses using Nextcloud login and application key<br>
 
+# Manual test
 If everything is good you can view monitoring XML with url like:<br>
 https://NEXCLOUDADMIN:NEXTCLOUDKEY@NEXTCLOUDHOST/ocs/v2.php/apps/serverinfo/api/v1/info<br>
-Log off nextcloud before testing or use another browser or curl -s urlabove.<br>
+Log off Nextcloud before testing or use another browser or curl -s urlabove.<br>
 
+# Troubleshoot
 If you use reverse proxy and expirience:<br>
   - About 30 seconds delay with curl<br>
   - Nextcloud shows warning about too many wrong login attempts on the login page<br>
