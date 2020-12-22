@@ -1,5 +1,5 @@
 # Zabbix template for Nextcloud monitoring.
-No scripts and agent settings!
+No scripts and agent settings!<br>
 I did it using Zabbix v5.2 and this template https://github.com/y-u-r/nextcloud-zabbix/blob/master/README.md 
 
 # Install
