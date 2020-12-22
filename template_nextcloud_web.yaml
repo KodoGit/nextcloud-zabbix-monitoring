@@ -1,0 +1,196 @@
+zabbix_export:
+  version: '5.2'
+  date: '2020-12-22T13:31:21Z'
+  groups:
+    -
+      name: Templates
+  templates:
+    -
+      template: template_nextcloud_web
+      name: template_nextcloud_web
+      description: 'This Template will get the monitoring data from the nextcloud xml monitoring using Zabbix HTTP agent.'
+      groups:
+        -
+          name: Templates
+      applications:
+        -
+          name: nextcloud
+      items:
+        -
+          name: 'Active Users'
+          type: HTTP_AGENT
+          key: nc_last5minutes
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/activeUsers/last5minutes)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'Number files'
+          type: HTTP_AGENT
+          key: nc_num_files
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/storage/num_files)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'Number shares'
+          type: HTTP_AGENT
+          key: nc_num_shares
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/shares/num_shares)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'number of group shares'
+          type: HTTP_AGENT
+          key: nc_num_shares_groups
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/shares/num_shares_groups)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'shares via link'
+          type: HTTP_AGENT
+          key: nc_num_shares_link
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/shares/num_shares_link)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'shares via link with out password'
+          type: HTTP_AGENT
+          key: nc_num_shares_link_no_password
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/shares/num_shares_link_no_password)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'number of sharred with users'
+          type: HTTP_AGENT
+          key: nc_num_shares_user
+          delay: '300'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - number(/ocs/data/nextcloud/shares/num_shares_user)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+        -
+          name: 'Nextcloud Version'
+          type: HTTP_AGENT
+          key: nc_version
+          delay: '60480'
+          trends: '0'
+          value_type: TEXT
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: XMLPATH
+              parameters:
+                - string(/ocs/data/nextcloud/system/version)
+          timeout: 1m
+          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+      macros:
+        -
+          macro: '{$NCPW}'
+          value: password
+        -
+          macro: '{$NCU}'
+          value: user
+  graphs:
+    -
+      name: 'Active Users'
+      graph_items:
+        -
+          color: 00C800
+          item:
+            host: template_nextcloud_web
+            key: nc_last5minutes
+    -
+      name: 'Number files'
+      graph_items:
+        -
+          color: 00C800
+          item:
+            host: template_nextcloud_web
+            key: nc_num_files
+    -
+      name: 'share statistics'
+      graph_items:
+        -
+          color: C80000
+          item:
+            host: template_nextcloud_web
+            key: nc_num_shares
+        -
+          sortorder: '1'
+          color: 0000C8
+          item:
+            host: template_nextcloud_web
+            key: nc_num_shares_groups
+        -
+          sortorder: '2'
+          color: C800C8
+          item:
+            host: template_nextcloud_web
+            key: nc_num_shares_user
+        -
+          sortorder: '3'
+          color: 00C8C8
+          item:
+            host: template_nextcloud_web
+            key: nc_num_shares_link
+        -
+          sortorder: '4'
+          color: C8C800
+          item:
+            host: template_nextcloud_web
+            key: nc_num_shares_link_no_password
