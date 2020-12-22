@@ -14,7 +14,7 @@ https://NEXCLOUDADMIN:NEXTCLOUDKEY@NEXTCLOUDHOST/ocs/v2.php/apps/serverinfo/api/
 Log off Nextcloud before testing or use another browser or curl -s urlabove.<br>
 
 # Troubleshoot
-If you use reverse proxy and expirience:<br>
+If you use reverse proxy and experience:<br>
   - About 30 seconds delay with curl<br>
   - Nextcloud shows warning about too many wrong login attempts on the login page<br>
   - You get 997 error with curl or redirected to login page in browser.<br>
