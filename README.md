@@ -1,5 +1,5 @@
 # Nextcloud template for zabbix monitoring.
-I did it using this template https://github.com/y-u-r/nextcloud-zabbix/blob/master/README.md for Zabbix v5.2
+I did it using Zabbix v5.2 and this template https://github.com/y-u-r/nextcloud-zabbix/blob/master/README.md 
 
 Go to your nexcloud administrator account settings.<br>
 Create application key on Security tab.<br>
