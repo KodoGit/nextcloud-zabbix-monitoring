@@ -1,13 +1,13 @@
 zabbix_export:
   version: '5.2'
-  date: '2020-12-22T13:31:21Z'
+  date: '2021-03-04T20:27:39Z'
   groups:
     -
       name: Templates
   templates:
     -
-      template: template_nextcloud_web
-      name: template_nextcloud_web
+      template: Nextcloud
+      name: Nextcloud
       description: 'This Template will get the monitoring data from the nextcloud xml monitoring using Zabbix HTTP agent.'
       groups:
         -
@@ -17,180 +17,518 @@ zabbix_export:
           name: nextcloud
       items:
         -
-          name: 'Active Users'
+          name: API-request
           type: HTTP_AGENT
-          key: nc_last5minutes
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/activeUsers/last5minutes)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'Number files'
-          type: HTTP_AGENT
-          key: nc_num_files
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/storage/num_files)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'Number shares'
-          type: HTTP_AGENT
-          key: nc_num_shares
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/shares/num_shares)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'number of group shares'
-          type: HTTP_AGENT
-          key: nc_num_shares_groups
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/shares/num_shares_groups)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'shares via link'
-          type: HTTP_AGENT
-          key: nc_num_shares_link
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/shares/num_shares_link)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'shares via link with out password'
-          type: HTTP_AGENT
-          key: nc_num_shares_link_no_password
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/shares/num_shares_link_no_password)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'number of sharred with users'
-          type: HTTP_AGENT
-          key: nc_num_shares_user
-          delay: '300'
-          applications:
-            -
-              name: nextcloud
-          preprocessing:
-            -
-              type: XMLPATH
-              parameters:
-                - number(/ocs/data/nextcloud/shares/num_shares_user)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
-        -
-          name: 'Nextcloud Version'
-          type: HTTP_AGENT
-          key: nc_version
-          delay: '60480'
+          key: nc_api
+          delay: 5m
+          history: '0'
           trends: '0'
           value_type: TEXT
           applications:
             -
               name: nextcloud
+          timeout: 20s
+          url: 'https://{$NC_USER}:{$NC_PASSWORD}@{HOST.DNS}/{$NC_PATH}ocs/v2.php/apps/serverinfo/api/v1/info'
+          query_fields:
+            -
+              name: format
+              value: json
+        -
+          name: 'Number of files'
+          type: DEPENDENT
+          key: nc_files_count
+          delay: '0'
+          description: 'Number of files managed.'
+          applications:
+            -
+              name: nextcloud
           preprocessing:
             -
-              type: XMLPATH
+              type: JSONPATH
               parameters:
-                - string(/ocs/data/nextcloud/system/version)
-          timeout: 1m
-          url: 'https://{$NCU}:{$NCPW}@{HOST.DNS}/ocs/v2.php/apps/serverinfo/api/v1/info'
+                - $.ocs.data.nextcloud.storage.num_files
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of apps installed'
+          type: DEPENDENT
+          key: nc_num_apps_installed
+          delay: '0'
+          description: 'Number of apps installed on Nextcloud instance.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.system.apps.num_installed
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '43200'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of shares'
+          type: DEPENDENT
+          key: nc_num_shares
+          delay: '0'
+          description: 'Total number of shares.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of group shares'
+          type: DEPENDENT
+          key: nc_num_shares_groups
+          delay: '0'
+          description: 'Number of shares with groups.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares_groups
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of link shares'
+          type: DEPENDENT
+          key: nc_num_shares_link
+          delay: '0'
+          description: 'Number of shares by link.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares_link
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of link shares without password'
+          type: DEPENDENT
+          key: nc_num_shares_link_no_password
+          delay: '0'
+          description: 'Number of shares by link without using a password.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares_link_no_password
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of mail shares'
+          type: DEPENDENT
+          key: nc_num_shares_mail
+          delay: '0'
+          description: 'Number of shares by mail.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares_mail
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of user shares'
+          type: DEPENDENT
+          key: nc_num_shares_user
+          delay: '0'
+          description: 'Number of shares with individual users.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.shares.num_shares_user
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Number of updates available'
+          type: DEPENDENT
+          key: nc_num_updates_available
+          delay: '0'
+          description: |
+            Number of app updates for active apps available to Nextcloud.
+            Note: There might be more updates including disabled apps.
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.system.apps.num_updates_available
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '43200'
+          master_item:
+            key: nc_api
+          triggers:
+            -
+              expression: '{last()}>0'
+              name: 'Nextcloud app updates available for enabled apps'
+              url: 'https://{HOST.DNS}/{$NC_PATH}index.php/settings/apps'
+              priority: INFO
+              description: |
+                There are Nextcloud app updates available ready to be installed. Updates should be applied as soon as possible. Specifically if they are security-related.
+                
+                Note: There might be more updates available. The reported number only includes updates for apps currently in enabled status.
+        -
+          name: 'Free space'
+          type: DEPENDENT
+          key: nc_space_free
+          delay: '0'
+          units: B
+          description: 'Number of shares with individual users.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.system.freespace
+          master_item:
+            key: nc_api
+        -
+          name: 'Status code'
+          type: DEPENDENT
+          key: nc_statuscode
+          delay: '0'
+          description: 'Nextcloud status code reported by API.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.meta.statuscode
+          master_item:
+            key: nc_api
+          triggers:
+            -
+              expression: '{nodata(15m)}=1'
+              name: 'Nextcloud API not responding since 15 minutes'
+              priority: HIGH
+              description: 'No response from Nextcloud API since 15 minutes.'
+            -
+              expression: '{last()}<>200'
+              name: 'Nextcloud status code not OK'
+              priority: HIGH
+              description: 'Nextcloud reported unsuccessful status code.'
+        -
+          name: 'Active user count during last hour'
+          type: DEPENDENT
+          key: nc_user_count_1h
+          delay: '0'
+          description: 'Number of active users during last hour.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.activeUsers.last1hour
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Active user count during last 5 minutes'
+          type: DEPENDENT
+          key: nc_user_count_5min
+          delay: '0'
+          description: 'Number of active users during last 5 minutes.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.activeUsers.last5minutes
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Active user count during last 24 hours'
+          type: DEPENDENT
+          key: nc_user_count_24h
+          delay: '0'
+          description: 'Number of active users during last 24 hours.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.activeUsers.last24hours
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '3600'
+          master_item:
+            key: nc_api
+        -
+          name: 'Nextcloud version'
+          type: DEPENDENT
+          key: nc_version
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Nextcloud version.'
+          applications:
+            -
+              name: nextcloud
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.ocs.data.nextcloud.system.version
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '86400'
+          master_item:
+            key: nc_api
       macros:
         -
-          macro: '{$NCPW}'
-          value: password
+          macro: '{$NC_PASSWORD}'
+          type: SECRET_TEXT
+          description: 'Application-Specific password. Generate at "index.php/settings/user/security"'
         -
-          macro: '{$NCU}'
+          macro: '{$NC_PATH}'
+          value: nextcloud/
+          description: 'Installation path. Set to "/" if your NC instance is running in webserver root. Please include trailing slash!'
+        -
+          macro: '{$NC_USER}'
           value: user
+          description: 'Username for authentication.'
+      dashboards:
+        -
+          name: 'Nextcloud status'
+          widgets:
+            -
+              type: GRAPH_CLASSIC
+              'y': '2'
+              width: '12'
+              height: '6'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Number of users'
+                    host: Nextcloud
+            -
+              type: GRAPH_CLASSIC
+              name: 'App info'
+              'y': '8'
+              width: '12'
+              height: '6'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Apps and updates'
+                    host: Nextcloud
+            -
+              type: GRAPH_CLASSIC
+              name: 'Files and space'
+              x: '12'
+              'y': '8'
+              width: '12'
+              height: '6'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Files and space'
+                    host: Nextcloud
+            -
+              type: GRAPH_CLASSIC
+              name: Shares
+              x: '12'
+              width: '12'
+              height: '8'
+              fields:
+                -
+                  type: GRAPH
+                  name: graphid
+                  value:
+                    name: 'Share info'
+                    host: Nextcloud
+            -
+              type: PLAIN_TEXT
+              name: Version
+              width: '12'
+              fields:
+                -
+                  type: INTEGER
+                  name: show_lines
+                  value: '1'
+                -
+                  type: ITEM
+                  name: itemids
+                  value:
+                    key: nc_version
+                    host: Nextcloud
   graphs:
     -
-      name: 'Active Users'
+      name: 'Apps and updates'
       graph_items:
-        -
-          color: 00C800
-          item:
-            host: template_nextcloud_web
-            key: nc_last5minutes
-    -
-      name: 'Number files'
-      graph_items:
-        -
-          color: 00C800
-          item:
-            host: template_nextcloud_web
-            key: nc_num_files
-    -
-      name: 'share statistics'
-      graph_items:
-        -
-          color: C80000
-          item:
-            host: template_nextcloud_web
-            key: nc_num_shares
         -
           sortorder: '1'
-          color: 0000C8
+          color: 1A7C11
           item:
-            host: template_nextcloud_web
-            key: nc_num_shares_groups
+            host: Nextcloud
+            key: nc_num_apps_installed
         -
           sortorder: '2'
-          color: C800C8
+          color: F63100
+          calc_fnc: MAX
           item:
-            host: template_nextcloud_web
-            key: nc_num_shares_user
+            host: Nextcloud
+            key: nc_num_updates_available
+    -
+      name: 'Files and space'
+      ymin_type_1: FIXED
+      graph_items:
+        -
+          sortorder: '1'
+          color: 1A7C11
+          item:
+            host: Nextcloud
+            key: nc_space_free
+        -
+          sortorder: '2'
+          color: F63100
+          yaxisside: RIGHT
+          item:
+            host: Nextcloud
+            key: nc_files_count
+    -
+      name: 'Number of users'
+      graph_items:
+        -
+          sortorder: '1'
+          color: 1A7C11
+          calc_fnc: MAX
+          item:
+            host: Nextcloud
+            key: nc_user_count_5min
+        -
+          sortorder: '2'
+          color: F63100
+          calc_fnc: MAX
+          item:
+            host: Nextcloud
+            key: nc_user_count_24h
         -
           sortorder: '3'
-          color: 00C8C8
+          color: 2774A4
+          calc_fnc: MAX
           item:
-            host: template_nextcloud_web
-            key: nc_num_shares_link
+            host: Nextcloud
+            key: nc_user_count_1h
+    -
+      name: 'Share info'
+      graph_items:
+        -
+          sortorder: '1'
+          color: 1A7C11
+          item:
+            host: Nextcloud
+            key: nc_num_shares
+        -
+          sortorder: '2'
+          color: 0040FF
+          item:
+            host: Nextcloud
+            key: nc_num_shares_groups
+        -
+          sortorder: '3'
+          color: 6C59DC
+          item:
+            host: Nextcloud
+            key: nc_num_shares_user
         -
           sortorder: '4'
-          color: C8C800
+          color: 80FF00
           item:
-            host: template_nextcloud_web
+            host: Nextcloud
+            key: nc_num_shares_link
+        -
+          sortorder: '5'
+          color: F63100
+          item:
+            host: Nextcloud
             key: nc_num_shares_link_no_password
+        -
+          sortorder: '6'
+          color: A54F10
+          item:
+            host: Nextcloud
+            key: nc_num_shares_mail
