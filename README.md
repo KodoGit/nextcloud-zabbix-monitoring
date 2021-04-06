@@ -23,4 +23,4 @@ Check that you've added your reverse proxy ip to confg.php like:<br>
 'trusted_proxies' => ['172.18.0.1']<br>
 If you use docker type 'ifconfig' and your proxy ip will be like 172.17.0.1 for default network or 172.XX.0.1 for custom.
 
-<br>https://github.com/dvydruk/nextcloud-zabbix-monitoring
+<br>https://github.com/KodoGit/nextcloud-zabbix-monitoring
